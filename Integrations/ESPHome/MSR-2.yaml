@@ -1,7 +1,7 @@
 #Define Project
 substitutions:
   name: apollo-msr-2
-  version:  "24.3.1.1"
+  version:  "24.3.27.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -16,7 +16,6 @@ esphome:
   - priority: 900.0
     then:
       - lambda: |-
-          id(cpu_speed) = ESP.getCpuFreqMHz();
           id(radar_bluetooth).turn_off();
 
   project:
@@ -29,7 +28,7 @@ esphome:
 esp32:
   board: esp32-c3-devkitm-1
   framework:
-    type: arduino
+    type: esp-idf
   
 dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
@@ -83,8 +82,6 @@ api:
             id: ld2410_radar
             password: !lambda 'return password;'
 
-logger:
-
 ota:
   password: "apolloautomation"
   safe_mode: false
@@ -95,11 +92,9 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Apollo 2 Hotspot"
+    ssid: "Apollo MSR2 Hotspot"
 
 captive_portal:
-
-improv_serial:
 
 web_server:
   port: 80
@@ -340,15 +335,6 @@ ld2410:
   id: ld2410_radar
 
 sensor:
-  - platform: template
-    name: "ESP Cpu Speed"
-    accuracy_decimals: 0
-    unit_of_measurement: Mhz
-    lambda: |-
-      return (id(cpu_speed));
-    entity_category: "diagnostic"
-    id: esp_cpu_speed
-
   - platform: internal_temperature
     name: "ESP Temperature"
     id: sys_esp_temperature
@@ -359,14 +345,6 @@ sensor:
     id: sys_uptime
     update_interval: 60s
 
-  - platform: template
-    id: esp_memory
-    icon: mdi:memory
-    name: ESP Free Memory
-    lambda: return heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024;
-    unit_of_measurement: "kB"
-    state_class: measurement
-    entity_category: "diagnostic"
 
   - platform: wifi_signal
     name: RSSI
@@ -448,15 +426,9 @@ sensor:
       still_energy:
         name: g8 still energy
 
-
-
   
   - platform: ltr390
     id: ltr_390
-    uv:
-      name: "LTR390 UV"
-      id: ltr390uv
-      disabled_by_default: true
     light:
       name: "LTR390 Light"
       id: ltr390light
@@ -464,10 +436,7 @@ sensor:
     uv_index:
       name: "LTR390 UV Index"
       id: ltr390uvindex
-    ambient_light:
-      name: "LTR390 Ambient Light"
-      id: ltr390ambientlight
-    update_interval: 60s
+    update_interval: 5s
 
   - platform: dps310
     id: dps_310
