@@ -1,7 +1,7 @@
 #Define Project
 substitutions:
   name: apollo-msr-2
-  version:  "24.3.27.1"
+  version:  "24.4.6.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -172,7 +172,7 @@ number:
 
   - platform: template
     name: DPS Temperature Offset
-    id: dps_temperature_offset
+    id: dps310_temperature_offset
     restore_value: true
     initial_value: 14.54
     min_value: -70.0
@@ -432,7 +432,6 @@ sensor:
     light:
       name: "LTR390 Light"
       id: ltr390light
-      disabled_by_default: true
     uv_index:
       name: "LTR390 UV Index"
       id: ltr390uvindex
@@ -444,7 +443,10 @@ sensor:
       name: "DPS310 Pressure"
       id: dps310pressure
     temperature:
+      name: "DPS310 Temperature"
       id: dps310temperature
+      filters:
+        - lambda: return x - id(dps310_temperature_offset).state;
     update_interval: 30s
     i2c_id: bus_a
 
