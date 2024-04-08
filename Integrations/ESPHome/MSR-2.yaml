@@ -85,7 +85,7 @@ api:
             password: !lambda 'return password;'
 
 ota:
-  password: "apolloautomation"
+  password:
   safe_mode: false
 
 wifi:
