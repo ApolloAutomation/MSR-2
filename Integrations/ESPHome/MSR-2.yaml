@@ -1,7 +1,7 @@
 #Define Project
 substitutions:
   name: apollo-msr-2
-  version:  "24.4.6.1"
+  version:  "24.4.16.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -85,8 +85,6 @@ api:
             password: !lambda 'return password;'
 
 ota:
-  password:
-  safe_mode: false
 
 wifi:
 
@@ -385,48 +383,66 @@ sensor:
     g0:
       move_energy:
         name: g0 move energy
+        state_class: measurement
       still_energy:
         name: g0 still energy
+        state_class: measurement
     g1:
       move_energy:
         name: g1 move energy
+        state_class: measurement
       still_energy:
         name: g1 still energy
+        state_class: measurement
     g2:
       move_energy:
         name: g2 move energy
+        state_class: measurement
       still_energy:
         name: g2 still energy
+        state_class: measurement
     g3:
       move_energy:
         name: g3 move energy
+        state_class: measurement
       still_energy:
         name: g3 still energy
+        state_class: measurement
     g4:
       move_energy:
         name: g4 move energy
+        state_class: measurement
       still_energy:
         name: g4 still energy
+        state_class: measurement
     g5:
       move_energy:
         name: g5 move energy
+        state_class: measurement
       still_energy:
         name: g5 still energy
+        state_class: measurement
     g6:
       move_energy:
         name: g6 move energy
+        state_class: measurement
       still_energy:
         name: g6 still energy
+        state_class: measurement
     g7:
       move_energy:
         name: g7 move energy
+        state_class: measurement
       still_energy:
         name: g7 still energy
+        state_class: measurement
     g8:
       move_energy:
         name: g8 move energy
+        state_class: measurement
       still_energy:
         name: g8 still energy
+        state_class: measurement
 
   
   - platform: ltr390
@@ -437,7 +453,6 @@ sensor:
     uv_index:
       name: "LTR390 UV Index"
       id: ltr390uvindex
-    update_interval: 5s
 
   - platform: dps310
     id: dps_310
