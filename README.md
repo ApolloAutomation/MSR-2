@@ -1,11 +1,12 @@
-# Apollo mmWave CO2 Multisensor Mk1 (MSR-1)
+# Apollo mmWave CO2 Multisensor Mk1 (MSR-2)
 
-![image](https://github.com/ApolloAutomation/MSR-1/assets/24777085/5f67cf3d-4b61-4867-97e9-057eff124b19)
+<img width="1083" alt="image" src="https://github.com/ApolloAutomation/MSR-2/assets/24777085/63cdafa0-2572-44a0-b7fa-dabc629c93ef">
+
 
 
 This sensor offers a wide range of functionality for Home Assistant in a very tiny package.
 
 Links: \
 Discord (Support/feedback/discussion/future products): [https://discord.gg/8PpS4yUaUh](https://discord.gg/mMNgQPyF94) \
-Shop: https://shop.apolloautomation.cloud \
-Wiki: https://wiki.apolloautomation.cloud 
+Shop: [https://apolloautomation.com](https://apolloautomation.com/products/msr-2) \
+Wiki: https://wiki.apolloautomation.com
