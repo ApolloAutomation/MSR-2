@@ -1,4 +1,4 @@
-# Apollo mmWave CO2 Multisensor Mk1 (MSR-2)
+# Apollo mmWave CO2 Multisensor (MSR-2) ld2410
 
 <img width="1083" alt="image" src="https://github.com/ApolloAutomation/MSR-2/assets/24777085/63cdafa0-2572-44a0-b7fa-dabc629c93ef">
 
