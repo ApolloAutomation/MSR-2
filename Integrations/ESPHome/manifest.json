@@ -1,12 +1,12 @@
 {
     "name": "apollo-msr-2",
-    "version": "24.5.9.1",
+    "version": "24.6.20.1",
     "new_install_prompt_erase": false,
     "builds": [
       {
         "chipFamily": "ESP32-C3",
         "parts": [
-          { "path": "firmware-factory.bin", "offset": 0 }
+          { "path": "firmware.factory.bin", "offset": 0 }
         ]
       }
     ]
