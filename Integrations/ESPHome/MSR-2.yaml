@@ -105,6 +105,7 @@ api:
 
 ota:
   - platform: esphome
+    id: ota_default
 
 wifi:
 
