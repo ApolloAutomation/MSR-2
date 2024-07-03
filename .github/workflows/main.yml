@@ -22,7 +22,7 @@ jobs:
         uses: Sniddl/discord-commits@v1.6
         with:
           # discord webhook url without /github
-          webhook: ${{ secrets.DiscordWebhook }}
+          webhook: ${{ secrets.DISCORDHOOK }}
           # A general message that is displayed for all commits. Defaults to the repo name.
           message: 'MSR-2'
           # Boolean - Include extra embeds provided from templates.
