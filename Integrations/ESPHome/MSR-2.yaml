@@ -1,7 +1,7 @@
 #Define Project
 substitutions:
   name: apollo-msr-2
-  version:  "24.7.2.1"
+  version:  "24.7.3.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -59,10 +59,6 @@ update:
     name: Firmware Update
     source: https://apolloautomation.github.io/MSR-2/artifact/manifest.json
 
-improv_serial:
-
-esp32_improv:
-  authorizer: none
 
 logger:
 
@@ -127,12 +123,7 @@ api:
 
 
 wifi:
-  on_connect:
-    - delay: 5s  # Gives time for improv results to be transmitted
-    - ble.disable:
-  on_disconnect:
-    - ble.enable:
-
+  power_save_mode: none
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
