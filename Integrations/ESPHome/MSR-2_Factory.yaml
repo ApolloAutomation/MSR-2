@@ -60,6 +60,11 @@ update:
 
 safe_mode:
 
+improv_serial:
+
+esp32_improv:
+  authorizer: none
+
 wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
@@ -70,7 +75,7 @@ captive_portal:
 
 packages:
   remote_package:
-    url: https://github.com/ApolloAutomation/MSR-2/
+    url: github://ApolloAutomation/MSR-2/
     ref: main
     files:
       - Integrations/ESPHome/Core.yaml
