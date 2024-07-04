@@ -1,3 +1,28 @@
+ota:
+  - platform: esphome
+    id: ota_default
+  - platform: http_request
+    id: ota_managed
+
+http_request:
+  useragent: esphome/device
+  timeout: 10s
+  verify_ssl: false
+
+update:
+  - platform: http_request
+    id: firmware_update
+    name: Firmware Update
+    source: https://apolloautomation.github.io/MSR-2/artifact/manifest.json
+
+safe_mode:
+
+wifi:
+  ap:
+    ssid: "Apollo MSR2 Hotspot"
+
+captive_portal:
+
 globals:
   - id: button_press_timestamp
     restore_value: no
