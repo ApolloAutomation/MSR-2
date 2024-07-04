@@ -1,4 +1,3 @@
-#Define Project
 substitutions:
   name: apollo-msr-2
   version:  "24.7.4.1"
@@ -11,7 +10,6 @@ esphome:
   name_add_mac_suffix: true
   platformio_options:
     board_build.flash_mode: dio
-
   on_boot:
   - priority: 900.0
     then:
@@ -31,7 +29,6 @@ esphome:
 
   min_version: 2024.6.0
 
-# Define Board
 esp32:
   board: esp32-c3-devkitm-1
   framework:
@@ -66,16 +63,17 @@ esp32_improv:
   authorizer: none
 
 wifi:
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Apollo MSR2 Hotspot"
 
 captive_portal:
 
+logger:
+  level: WARN
+
 packages:
   remote_package:
-    url: github://ApolloAutomation/MSR-2/
+    url: https://github.com/ApolloAutomation/MSR-2/
     ref: main
     files:
       - Integrations/ESPHome/Core.yaml

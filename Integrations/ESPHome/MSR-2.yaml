@@ -61,8 +61,6 @@ update:
 safe_mode:
 
 wifi:
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Apollo MSR2 Hotspot"
 

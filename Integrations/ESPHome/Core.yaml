@@ -297,8 +297,6 @@ binary_sensor:
 ld2410:
   id: ld2410_radar
 
-
-
 sensor:
   - platform: internal_temperature
     name: "ESP Temperature"
@@ -308,7 +306,6 @@ sensor:
     name: Uptime
     id: sys_uptime
     update_interval: 60s
-
 
   - platform: wifi_signal
     name: RSSI
@@ -326,7 +323,6 @@ sensor:
     measurement_mode: "periodic"
     i2c_id: bus_a
     ambient_pressure_compensation_source: dps310pressure
-
 
   - platform: ld2410
     moving_distance:
@@ -407,7 +403,6 @@ sensor:
       still_energy:
         name: g8 still energy
         state_class: measurement
-
   
   - platform: ltr390
     id: ltr_390
@@ -455,7 +450,6 @@ light:
           update_interval: 100ms
           min_brightness: 50%
           max_brightness: 100%
-    
 
 button:
   - platform: restart
