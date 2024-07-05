@@ -668,4 +668,3 @@ script:
                     blue: 0%
                 - light.turn_off:
                     id: rgb_light
-No newline at end of file
