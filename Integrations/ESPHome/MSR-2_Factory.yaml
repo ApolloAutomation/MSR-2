@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version:  "24.7.4.1"
+  version:  "24.7.5.2"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -37,6 +37,26 @@ esp32:
 dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
   import_full_config: false
+
+ota:
+  - platform: esphome
+    id: ota_default
+  - platform: http_request
+    id: ota_managed
+
+http_request:
+  useragent: esphome/device
+  timeout: 10s
+  verify_ssl: true
+
+update:
+  - platform: http_request
+    id: firmware_update
+    name: Firmware Update
+    source: https://apolloautomation.github.io/MSR-2/artifact/manifest.json
+
+
+safe_mode:
 
 improv_serial:
 
