@@ -1,7 +1,7 @@
 #Define Project
 substitutions:
   name: apollo-msr-2
-  version:  "24.7.4.1"
+  version:  "24.7.5.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -31,9 +31,6 @@ esphome:
 
   min_version: 2024.6.0
 
-bluetooth_proxy:
-  active: true
-
 # Define Board
 esp32:
   board: esp32-c3-devkitm-1
@@ -43,6 +40,23 @@ esp32:
 dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
   import_full_config: false
+
+
+ota:
+  - platform: esphome
+    id: ota_default
+
+bluetooth_proxy:
+  active: true
+
+wifi:
+  ap:
+    ssid: "Apollo MSR2 Hotspot"
+
+captive_portal:
+
+web_server:
+  port: 80
 
 packages:
   remote_package:
