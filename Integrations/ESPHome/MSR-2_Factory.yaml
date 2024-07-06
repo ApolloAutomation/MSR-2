@@ -1,8 +1,3 @@
-substitutions:
-  name: apollo-msr-2
-  version:  "24.7.6.2"
-  device_description: ${name} made by Apollo Automation - version ${version}.
-  
 esphome:
   name: "${name}"
   friendly_name: Apollo MSR-2
@@ -29,10 +24,6 @@ esphome:
 
   min_version: 2024.6.4
 
-esp32:
-  board: esp32-c3-devkitm-1
-  framework:
-    type: esp-idf
   
 dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2_Factory.yaml
@@ -46,7 +37,7 @@ esp32_improv:
 
 wifi:
   on_connect:
-    - delay: 5s  # Gives time for improv results to be transmitted
+    - delay: 5s  
     - ble.disable:
   on_disconnect:
     - ble.enable:
