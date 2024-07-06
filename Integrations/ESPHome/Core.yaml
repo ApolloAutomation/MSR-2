@@ -1,6 +1,3 @@
-wifi:
-  ap:
-    ssid: "Apollo MSR2 Hotspot"
 
 captive_portal:
 

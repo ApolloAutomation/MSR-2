@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version:  "24.7.6.1"
+  version:  "24.7.6.2"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esphome:
@@ -43,6 +43,15 @@ improv_serial:
 
 esp32_improv:
   authorizer: none
+
+wifi:
+  on_connect:
+    - delay: 5s  # Gives time for improv results to be transmitted
+    - ble.disable:
+  on_disconnect:
+    - ble.enable:
+  ap:
+    ssid: "Apollo MSR2 Hotspot"
 
 logger:
 
