@@ -68,7 +68,7 @@ safe_mode:
 packages:
   remote_package:
     url: https://github.com/ApolloAutomation/MSR-2/
-    ref: SplitYaml
+    ref: main
     files:
       - Integrations/ESPHome/Core.yaml
     refresh: 0d

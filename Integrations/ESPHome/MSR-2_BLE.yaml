@@ -1,8 +1,3 @@
-substitutions:
-  name: apollo-msr-2
-  version:  "24.7.5.1"
-  device_description: ${name} made by Apollo Automation - version ${version}.
-  
 esphome:
   name: "${name}"
   friendly_name: Apollo MSR-2
@@ -46,7 +41,7 @@ ota:
 packages:
   remote_package:
     url: https://github.com/ApolloAutomation/MSR-2/
-    ref: SplitYaml
+    ref: main
     files:
       - Integrations/ESPHome/Core.yaml
     refresh: 0d
