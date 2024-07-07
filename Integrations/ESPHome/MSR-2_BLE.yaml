@@ -38,6 +38,9 @@ ota:
   - platform: esphome
     id: ota_esphome
 
+bluetooth_proxy:
+  active: true
+
 packages:
   remote_package:
     url: https://github.com/ApolloAutomation/MSR-2/
