@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         file:
+          - Integrations/ESPHome/MSR-2_Factory.yaml
           - Integrations/ESPHome/MSR-2.yaml
           - Integrations/ESPHome/MSR-2_BLE.yaml
     steps:
