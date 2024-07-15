@@ -26,7 +26,7 @@ esphome:
 
   
 dashboard_import:
-  package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2_Factory.yaml
+  package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
   import_full_config: false
 
 
@@ -49,20 +49,7 @@ logger:
 ota:
   - platform: esphome
     id: ota_esphome
-  - platform: http_request
-    id: ota_managed
 
-http_request:
-  verify_ssl: true
-
-update:
-  - platform: http_request
-    id: firmware_update
-    name: Firmware Update
-    source: https://apolloautomation.github.io/MSR-2/artifact/manifest.json
-
-
-safe_mode:
 
 
 packages:

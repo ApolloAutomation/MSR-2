@@ -10,5 +10,5 @@ Breaks:
 
 Checks:
 - [ ] Documentation Updated
-- [ ] Build Number Incremented In YAML (YY-MM-DD-#)
+- [ ] Build Number Incremented In YAML (YY.MM.DD.#)
 
