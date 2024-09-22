@@ -26,7 +26,7 @@ esphome:
 
   
 dashboard_import:
-  package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
+  package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2_Factory.yaml
   import_full_config: false
 
 
