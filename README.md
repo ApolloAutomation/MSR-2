@@ -12,7 +12,7 @@ YAML Files:
 - MSR-2_Factory.yaml: This is the firmware flashed by us on new devices. It contains the components for ESP improve, allowing easy adoption in Home Assistant. When you load the device in ESPHome addon, it will grab the firmware from MSR-2.yaml which no longer has the improve.
 
 Links: \
-Discord (Support/feedback/discussion/future products): [https://discord.gg/8PpS4yUaUh](https://discord.gg/mMNgQPyF94) \
+Discord (Support/feedback/discussion/future products): [https://dsc.gg/ApolloAutomation] \
 Shop: [https://apolloautomation.com](https://apolloautomation.com/products/msr-2) \
 Wiki: https://wiki.apolloautomation.com \
 3D Files: [https://www.printables.com/model/932026-apollo-automation-msr-2-mmwave-co2-multisensor-for](https://www.printables.com/model/932026-apollo-automation-msr-2-mmwave-co2-multisensor-for)
