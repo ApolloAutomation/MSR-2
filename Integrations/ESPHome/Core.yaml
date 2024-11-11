@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version:  "24.11.10.1"
+  version:  "24.11.11.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esp32:
@@ -368,20 +368,12 @@ sensor:
     name: Uptime
     id: sys_uptime
     update_interval: 60s
-    filters:
-        - lambda: |-
-            if (reduce_db_reporting) return {};
-            return x;
 
   - platform: wifi_signal
     name: RSSI
     id: wifi_signal_db
     update_interval: 60s
     entity_category: "diagnostic"
-    filters:
-        - lambda: |-
-            if (reduce_db_reporting) return {};
-            return x;
 
   - platform: scd4x
     id: scd40
@@ -697,7 +689,7 @@ switch:
     name: "Reduce DB Reporting"
     id: reduce_db_reporting
     icon: mdi:database
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
     entity_category: "config"
 
