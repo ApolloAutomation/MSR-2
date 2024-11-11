@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version:  "24.9.12.1"
+  version:  "24.11.10.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esp32:
@@ -245,9 +245,27 @@ binary_sensor:
     has_moving_target:
       name: Radar Moving Target
       id: radar_has_moving_target
+      on_state:
+        then:
+          - if:
+              condition:
+                binary_sensor.is_off: radar_has_still_target
+              then:
+                - lambda: |-
+                    id(moving_distance).publish_state(0);
     has_still_target:
       name: Radar Still Target
       id: radar_has_still_target
+      on_state:
+        then:
+          - if:
+              condition:
+                binary_sensor.is_off: radar_has_still_target
+              then:
+                - lambda: |-
+                    id(still_distance).publish_state(0);
+              
+
   ## Set Up Radar Zones Based On Distance
   - platform: template
     name: "Radar Zone 1 Occupancy"
@@ -255,7 +273,10 @@ binary_sensor:
     device_class: occupancy
     icon: mdi:motion-sensor
     lambda: |-
-      if ((id(radar_has_target).state) && ((id(radar_detection_distance).state < id(radar_z1_end).state) && (id(radar_detection_distance).state > id(radar_z1_start).state))){
+      bool still_in_zone = id(radar_has_still_target).state && (id(still_distance).state >= id(radar_z1_start).state) && (id(still_distance).state <= id(radar_z1_end).state);
+      bool moving_in_zone = id(radar_has_moving_target).state && (id(moving_distance).state >= id(radar_z1_start).state) && (id(moving_distance).state <= id(radar_z1_end).state);
+      
+      if (still_in_zone || moving_in_zone) {
         return true;
       } else {
         return false;
@@ -266,7 +287,10 @@ binary_sensor:
     device_class: occupancy
     icon: mdi:motion-sensor
     lambda: |-
-      if ((id(radar_has_target).state) && ((id(radar_z1_end).state < id(radar_detection_distance).state) && (id(radar_detection_distance).state < id(radar_z2_end).state))) {
+      bool still_in_zone = id(radar_has_still_target).state && (id(still_distance).state > id(radar_z1_end).state) && (id(still_distance).state <= id(radar_z2_end).state);
+      bool moving_in_zone = id(radar_has_moving_target).state && (id(moving_distance).state > id(radar_z1_end).state) && (id(moving_distance).state <= id(radar_z2_end).state);
+
+      if (still_in_zone || moving_in_zone) {
         return true;
       } else {
         return false;
@@ -277,7 +301,10 @@ binary_sensor:
     device_class: occupancy
     icon: mdi:motion-sensor
     lambda: |-
-      if ((id(radar_has_target).state) && ((id(radar_z2_end).state < id(radar_detection_distance).state) && (id(radar_detection_distance).state < id(radar_z3_end).state))) {
+      bool still_in_zone = id(radar_has_still_target).state && (id(still_distance).state > id(radar_z2_end).state) && (id(still_distance).state <= id(radar_z3_end).state);
+      bool moving_in_zone = id(radar_has_moving_target).state && (id(moving_distance).state > id(radar_z2_end).state) && (id(moving_distance).state <= id(radar_z3_end).state);
+
+      if (still_in_zone || moving_in_zone) {
         return true;
       } else {
         return false;
