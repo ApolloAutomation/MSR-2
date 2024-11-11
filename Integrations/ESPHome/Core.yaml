@@ -249,7 +249,7 @@ binary_sensor:
         then:
           - if:
               condition:
-                binary_sensor.is_off: radar_has_still_target
+                binary_sensor.is_off: radar_has_moving_target
               then:
                 - lambda: |-
                     id(moving_distance).publish_state(0);
