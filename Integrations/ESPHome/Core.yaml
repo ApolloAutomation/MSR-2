@@ -246,26 +246,10 @@ binary_sensor:
     has_moving_target:
       name: Radar Moving Target
       id: radar_has_moving_target
-      on_state:
-        then:
-          - if:
-              condition:
-                binary_sensor.is_off: radar_has_moving_target
-              then:
-                - lambda: |-
-                    id(moving_distance).publish_state(0);
     has_still_target:
       name: Radar Still Target
       id: radar_has_still_target
-      on_state:
-        then:
-          - if:
-              condition:
-                binary_sensor.is_off: radar_has_still_target
-              then:
-                - lambda: |-
-                    id(still_distance).publish_state(0);
-              
+             
 
   ## Set Up Radar Zones Based On Distance
   - platform: template
@@ -397,6 +381,11 @@ sensor:
             static float last_reported_value = 0.0;
             float current_value = x;
 
+            // Check if the radar_has_moving_target sensor is off
+            if (!id(radar_has_moving_target).state) {
+              return NAN;
+            }
+
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
               // Apply delta filter: only report if the value has changed by 2 or more
@@ -419,6 +408,11 @@ sensor:
         - lambda: |-
             static float last_reported_value = 0.0;
             float current_value = x;
+
+            // Check if the radar_has_still_target sensor is off
+            if (!id(radar_has_still_target).state) {
+              return NAN;
+            }
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
@@ -456,6 +450,11 @@ sensor:
         - lambda: |-
             static float last_reported_value = 0.0;
             float current_value = x;
+
+            // Check if the radar_has_target sensor is off
+            if (!id(radar_has_target).state) {
+              return NAN;
+            }
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
