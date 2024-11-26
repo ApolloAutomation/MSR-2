@@ -434,14 +434,14 @@ sensor:
       id: radar_moving_energy
       filters:
         - lambda: |-
-            if (reduce_db_reporting) return {};
+            if (id(reduce_db_reporting).state) return {};
             return x;
     still_energy:
       name: Radar Still Energy
       id: radar_still_energy
       filters:
         - lambda: |-
-            if (reduce_db_reporting) return {};
+            if (id(reduce_db_reporting).state) return {};
             return x;
     detection_distance:
       name: Radar Detection Distance
