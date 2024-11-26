@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version:  "24.11.11.1"
+  version:  "24.11.26.1"
 
   device_description: ${name} made by Apollo Automation - version ${version}.
   
