@@ -1,5 +1,5 @@
 esphome:
-  name: "${name}"
+  name: apollo-msr-2
   friendly_name: Apollo MSR-2
   comment: Apollo MSR-2
   name_add_mac_suffix: true
@@ -19,7 +19,7 @@ esphome:
             - lambda: "id(testScript).execute();"
 
   project:
-    name: "ApolloAutomation.MSR-2"
+    name: "ApolloAutomation.MSR-2_Factory"
     version: "${version}"
 
   min_version: 2024.6.4
