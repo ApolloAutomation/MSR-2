@@ -241,12 +241,36 @@ binary_sensor:
     has_target:
       name: Radar Target
       id: radar_has_target
+      on_state:
+        then:
+          - if:
+              condition:
+                binary_sensor.is_off: radar_has_target
+              then:
+                - lambda: |-
+                    id(radar_detection_distance).publish_state(NAN);
     has_moving_target:
       name: Radar Moving Target
       id: radar_has_moving_target
+      on_state:
+        then:
+          - if:
+              condition:
+                binary_sensor.is_off: radar_has_moving_target
+              then:
+                - lambda: |-
+                    id(moving_distance).publish_state(NAN);
     has_still_target:
       name: Radar Still Target
       id: radar_has_still_target
+      on_state:
+        then:
+          - if:
+              condition:
+                binary_sensor.is_off: radar_has_still_target
+              then:
+                - lambda: |-
+                    id(still_distance).publish_state(NAN);
              
 
   ## Set Up Radar Zones Based On Distance
@@ -372,6 +396,11 @@ sensor:
       id: moving_distance
       filters:
         - lambda: |-
+
+            if (!id(radar_has_moving_target).state) {
+               return NAN;
+             }
+
             if (!id(reduce_db_reporting).state) {
               return x;
             }
@@ -391,6 +420,12 @@ sensor:
       id: still_distance
       filters:
         - lambda: |-
+            
+            // Check if the radar_has_still_target sensor is off
+            if (!id(radar_has_still_target).state) {
+              return NAN;
+            }
+
             if (!id(reduce_db_reporting).state) {
               return x;
             }
@@ -426,6 +461,11 @@ sensor:
       id: radar_detection_distance
       filters:
         - lambda: |-
+            // Check if the radar_has_target sensor is off
+            if (!id(radar_has_target).state) {
+              return NAN;
+            }
+
             if (!id(reduce_db_reporting).state) {
               return x;
             }
