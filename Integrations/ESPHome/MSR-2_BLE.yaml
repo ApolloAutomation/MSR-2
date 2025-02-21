@@ -23,7 +23,7 @@ esphome:
     name: "ApolloAutomation.MSR-2"
     version: "${version}"
 
-  min_version: 2024.6.4
+  min_version: 2025.2.0
 
   
 dashboard_import:
@@ -42,9 +42,4 @@ bluetooth_proxy:
   active: true
 
 packages:
-  remote_package:
-    url: https://github.com/ApolloAutomation/MSR-2/
-    ref: main
-    files:
-      - Integrations/ESPHome/Core.yaml
-    refresh: 0d
+  core: !include Core.yaml
