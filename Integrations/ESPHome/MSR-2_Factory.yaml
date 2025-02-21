@@ -19,7 +19,7 @@ esphome:
             - lambda: "id(testScript).execute();"
 
   project:
-    name: "ApolloAutomation.MSR-2"
+    name: "ApolloAutomation.MSR-2_Factory"
     version: "${version}"
 
   min_version: 2025.2.0
