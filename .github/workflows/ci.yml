@@ -10,9 +10,13 @@ jobs:
     strategy:
       matrix:
         file:
-          - Integrations/ESPHome/MSR-2_Factory.yaml
           - Integrations/ESPHome/MSR-2.yaml
           - Integrations/ESPHome/MSR-2_BLE.yaml
+          - Integrations/ESPHome/MSR-2_Factory.yaml
+        esphome-version:
+          - stable
+          - beta
+          - dev
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4.1.7
