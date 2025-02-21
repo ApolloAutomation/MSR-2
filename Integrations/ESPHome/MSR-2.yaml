@@ -23,7 +23,7 @@ esphome:
     name: "ApolloAutomation.MSR-2"
     version: "${version}"
 
-  min_version: 2024.6.0
+  min_version: 2025.2.0
   
 dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
