@@ -50,11 +50,5 @@ ota:
   - platform: esphome
     id: ota_esphome
 
-
-
 packages:
-  ApolloAutomation.TEMP-1:
-    url: https://github.com/ApolloAutomation/MSR-2
-    ref: beta
-    files: [Integrations/ESPHome/TEMP-1_Minimal.yaml]
-    refresh: 1min
+  core: !include Core.yaml
