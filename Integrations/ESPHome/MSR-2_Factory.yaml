@@ -53,9 +53,8 @@ ota:
 
 
 packages:
-  remote_package:
-    url: https://github.com/ApolloAutomation/MSR-2/
-    ref: main
-    files:
-      - Integrations/ESPHome/Core.yaml
-    refresh: 0d
+  ApolloAutomation.TEMP-1:
+    url: https://github.com/ApolloAutomation/MSR-2
+    ref: beta
+    files: [Integrations/ESPHome/TEMP-1_Minimal.yaml]
+    refresh: 1min
