@@ -232,8 +232,6 @@ output:
 rtttl:
  output: buzzer
 
-
-
 binary_sensor:
   - platform: status
     name: Online
@@ -248,6 +246,32 @@ binary_sensor:
     has_still_target:
       name: Radar Still Target
       id: radar_has_still_target
+
+  - platform: gpio
+    pin:
+      number: GPIO0
+      inverted: true
+      ignore_strapping_warning: true
+      mode:
+        input: true
+        pullup: true
+    id: reset_button
+    on_press:
+      then:
+        - lambda: |-
+            id(button_press_timestamp) = millis();
+
+    on_release:
+      then:
+        - lambda: |-
+            if (millis() - id(button_press_timestamp) >= 8000) {
+              id(factory_reset_switch).turn_on();
+            }
+            else if (millis() - id(button_press_timestamp) >= 1000) {
+              //id(testCycleCount) = 0;
+              //id(runTest) = true;
+              //id(testScript).execute();
+            }
              
 
   ## Set Up Radar Zones Based On Distance
