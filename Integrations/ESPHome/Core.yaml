@@ -12,6 +12,7 @@ captive_portal:
 
 web_server:
   port: 80
+  version: 3
 
 globals:
   - id: button_press_timestamp
@@ -294,7 +295,7 @@ binary_sensor:
         return false;
       }
   - platform: gpio
-    pin: 
+    pin:
       number: GPIO9
       inverted: true
       ignore_strapping_warning: true
@@ -306,18 +307,17 @@ binary_sensor:
       then:
         - lambda: |-
             id(button_press_timestamp) = millis();
-            
+
     on_release:
       then:
         - lambda: |-
-            if (millis() - id(button_press_timestamp) >= 1000) {
+            if (millis() - id(button_press_timestamp) >= 8000) {
+              id(factory_reset_switch).turn_on();
+            }
+            else if (millis() - id(button_press_timestamp) >= 1000) {
               id(testCycleCount) = 0;
               id(runTest) = true;
               id(testScript).execute();
-            }
-            else if (millis() - id(button_press_timestamp) >= 8000) {
-              id(factory_reset_switch).turn_on();
-              
             }
 
 ld2410:
