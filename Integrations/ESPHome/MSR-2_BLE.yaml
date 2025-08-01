@@ -25,6 +25,7 @@ esphome:
 
   min_version: 2025.2.0
 
+logger:
   
 dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2_BLE.yaml
@@ -40,6 +41,9 @@ ota:
 
 bluetooth_proxy:
   active: true
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
 
 packages:
   core: !include Core.yaml
