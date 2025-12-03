@@ -329,17 +329,17 @@ sensor:
     id: sys_esp_temperature
     filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -378,7 +378,7 @@ sensor:
       filters:
         - throttle_with_priority: 1000ms
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the radar_has_moving_target sensor is off
@@ -388,12 +388,12 @@ sensor:
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -407,7 +407,7 @@ sensor:
       filters:
         - throttle_with_priority: 1000ms
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the radar_has_still_target sensor is off
@@ -417,12 +417,12 @@ sensor:
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -452,7 +452,7 @@ sensor:
       filters:
         - throttle_with_priority: 1000ms
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the radar_has_target sensor is off
@@ -462,12 +462,12 @@ sensor:
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -546,17 +546,17 @@ sensor:
       id: ltr390light
       filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -21.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
-              if (abs(current_value - last_reported_value) >= 20.0) {
+              // Apply delta filter: only report if the value has changed by 5 or more
+              if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 20
                 return {};  // Discard the update
               }
             } else {
@@ -569,17 +569,17 @@ sensor:
       id: ltr390uvindex
       filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -21.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
-              if (abs(current_value - last_reported_value) >= 20.0) {
+              // Apply delta filter: only report if the value has changed by 1 or more
+              if (abs(current_value - last_reported_value) >= 1.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 20
                 return {};  // Discard the update
               }
             } else {
@@ -595,17 +595,17 @@ sensor:
       id: dps310pressure
       filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {

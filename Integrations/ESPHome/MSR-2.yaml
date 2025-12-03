@@ -29,6 +29,8 @@ dashboard_import:
   package_import_url: github://ApolloAutomation/MSR-2/Integrations/ESPHome/MSR-2.yaml
   import_full_config: false
 
+logger:
+
 ota:
   - platform: esphome
     id: ota_default
