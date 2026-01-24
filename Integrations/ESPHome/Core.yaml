@@ -320,6 +320,17 @@ binary_sensor:
               id(testScript).execute();
             }
 
+  - platform: template
+    name: "Radar Zone Occupancy"
+    id: "radar_zone_occupancy"
+    device_class: occupancy
+    icon: mdi:motion-sensor
+    lambda: |-
+      bool zone1 = id(radar_zone_1_occupancy).state;
+      bool zone2 = id(radar_zone_2_occupancy).state;
+      bool zone3 = id(radar_zone_3_occupancy).state;
+      return zone1 || zone2 || zone3;
+
 ld2410:
   id: ld2410_radar
 
