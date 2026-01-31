@@ -43,6 +43,10 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
+  - id: ltr390_last_update
+    restore_value: no
+    type: uint32_t
+    initial_value: '0'
 
 # Enable Home Assistant API
 # Also Add Buzzer Service Connection
@@ -156,6 +160,19 @@ number:
     optimistic: true
     update_interval: never
     step: 0.1
+    mode: box
+  - platform: template
+    name: LTR390 Update Interval
+    id: ltr390_update_interval
+    restore_value: true
+    initial_value: 60
+    min_value: 1
+    max_value: 300
+    entity_category: "CONFIG"
+    unit_of_measurement: "s"
+    optimistic: true
+    update_interval: never
+    step: 1
     mode: box
 # Setting start of zone 1 occupancy
   - platform: template
@@ -552,6 +569,7 @@ sensor:
   
   - platform: ltr390
     id: ltr_390
+    update_interval: never
     light:
       name: "LTR390 Light"
       id: ltr390light
@@ -680,6 +698,21 @@ button:
       - scd4x.perform_forced_calibration:
           value: 420
           id: scd40
+
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          uint32_t current_time = millis() / 1000;  // Convert to seconds
+          uint32_t last_update = id(ltr390_last_update);
+          uint32_t interval = (uint32_t)id(ltr390_update_interval).state;
+
+          // Check if enough time has passed
+          if (current_time - last_update >= interval) {
+            id(ltr_390).update();
+            id(ltr390_last_update) = current_time;
+          }
 
 
 switch:
