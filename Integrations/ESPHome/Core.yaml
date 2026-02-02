@@ -708,12 +708,18 @@ interval:
           uint32_t last_update = id(ltr390_last_update);
           uint32_t interval = (uint32_t)id(ltr390_update_interval).state;
 
+          // Immediate update on boot (when last_update is still 0)
+          if (last_update == 0 && current_time > 0) {
+            id(ltr_390).update();
+            id(ltr390_last_update) = current_time;
+            return;
+          }
+
           // Check if enough time has passed
           if (current_time - last_update >= interval) {
             id(ltr_390).update();
             id(ltr390_last_update) = current_time;
           }
-
 
 switch:
   - platform: ld2410
