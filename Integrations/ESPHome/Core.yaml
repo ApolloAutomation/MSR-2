@@ -43,10 +43,27 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
+  - id: first_boot_done
+    restore_value: no
+    type: bool
+    initial_value: "false"
+  - id: boot_status_enabled
+    restore_value: yes
+    type: bool
+    initial_value: "true"
 
 # Enable Home Assistant API
 # Also Add Buzzer Service Connection
 api:
+  on_client_connected:
+    then:
+      - delay: 1s  # Let connection stabilize before showing status
+      - if:
+          condition:
+            - lambda: 'return !id(first_boot_done) && id(boot_status_enabled);'
+          then:
+            - lambda: 'id(first_boot_done) = true;'
+            - script.execute: statusCheck
   services:
     - service: play_buzzer
       variables:
@@ -314,10 +331,8 @@ binary_sensor:
             if (millis() - id(button_press_timestamp) >= 8000) {
               id(factory_reset_switch).turn_on();
             }
-            else if (millis() - id(button_press_timestamp) >= 1000) {
-              id(testCycleCount) = 0;
-              id(runTest) = true;
-              id(testScript).execute();
+            else if (millis() - id(button_press_timestamp) >= 2000) {
+              id(diagnosticCheck).execute();
             }
 
   - platform: template
@@ -700,6 +715,18 @@ switch:
     id: factory_reset_switch
     internal: true
   - platform: template
+    name: "Boot Status LED"
+    id: boot_status_led_switch
+    icon: mdi:led-on
+    entity_category: "config"
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
+    lambda: 'return id(boot_status_enabled);'
+    turn_on_action:
+      - lambda: 'id(boot_status_enabled) = true;'
+    turn_off_action:
+      - lambda: 'id(boot_status_enabled) = false;'
+  - platform: template
     name: "Reduce DB Reporting"
     id: reduce_db_reporting
     icon: mdi:database
@@ -713,6 +740,17 @@ text_sensor:
     version:
       name: "Radar Firmware Version"
 
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    lambda: |-
+      return {"${version}"};
+    entity_category: "diagnostic"
+
 select:
   - platform: ld2410
     distance_resolution:
@@ -722,7 +760,55 @@ select:
 
 
 script:
-  - id: testScript      
+  - id: statusCheck
+    mode: single  # First call runs to completion, subsequent calls ignored
+    then:
+      - if:
+          condition:
+            - lambda: 'return id(ink_ha_connected).state;'
+          then:
+            - logger.log: "Apollo Automation: Connected To HA"
+            - light.turn_on:
+                id: rgb_light
+                brightness: 100%
+                red: 0%
+                green: 0%
+                blue: 100%
+          else:
+            - if:
+                condition:
+                  - wifi.connected
+                then:
+                  - logger.log: "Apollo Automation: Connected To Wifi"
+                  - light.turn_on:
+                      id: rgb_light
+                      brightness: 100%
+                      red: 0%
+                      green: 100%
+                      blue: 0%
+                else:
+                  - logger.log: "Apollo Automation: Not Connected To Wifi"
+                  - light.turn_on:
+                      id: rgb_light
+                      brightness: 100%
+                      red: 100%
+                      green: 100%
+                      blue: 0%
+      - delay: 5s
+      - light.turn_off: rgb_light
+
+  - id: diagnosticCheck
+    mode: single
+    then:
+      - script.execute: statusCheck
+      - script.wait: statusCheck
+      - delay: 3s
+      - lambda: |-
+          id(testCycleCount) = 0;
+          id(runTest) = true;
+      - script.execute: testScript
+
+  - id: testScript
     then:
       if: 
         condition:

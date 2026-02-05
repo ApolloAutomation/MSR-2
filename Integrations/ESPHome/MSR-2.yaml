@@ -36,12 +36,18 @@ ota:
     id: ota_default
 
 wifi:
-
   power_save_mode: none
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Apollo MSR2 Hotspot"
+  on_connect:
+    then:
+      - delay: 10s  # Give HA time to connect first, then fall back to WiFi-only status
+      - if:
+          condition:
+            - lambda: 'return !id(first_boot_done) && id(boot_status_enabled);'
+          then:
+            - lambda: 'id(first_boot_done) = true;'
+            - script.execute: statusCheck
 
 
 packages:

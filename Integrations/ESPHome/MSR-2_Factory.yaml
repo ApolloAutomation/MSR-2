@@ -37,8 +37,15 @@ esp32_improv:
 
 wifi:
   on_connect:
-    - delay: 5s  
+    - delay: 5s
     - ble.disable:
+    - delay: 5s  # Additional delay (total 10s) for HA to connect
+    - if:
+        condition:
+          - lambda: 'return !id(first_boot_done) && id(boot_status_enabled);'
+        then:
+          - lambda: 'id(first_boot_done) = true;'
+          - script.execute: statusCheck
   on_disconnect:
     - ble.enable:
   ap:

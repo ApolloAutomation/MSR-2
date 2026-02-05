@@ -34,6 +34,15 @@ dashboard_import:
 wifi:
   ap:
     ssid: "Apollo MSR2 Hotspot"
+  on_connect:
+    then:
+      - delay: 10s  # Give HA time to connect first, then fall back to WiFi-only status
+      - if:
+          condition:
+            - lambda: 'return !id(first_boot_done) && id(boot_status_enabled);'
+          then:
+            - lambda: 'id(first_boot_done) = true;'
+            - script.execute: statusCheck
 
 ota:
   - platform: esphome
