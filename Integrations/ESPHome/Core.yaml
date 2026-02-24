@@ -713,6 +713,11 @@ text_sensor:
     version:
       name: "Radar Firmware Version"
 
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
+
 select:
   - platform: ld2410
     distance_resolution:
