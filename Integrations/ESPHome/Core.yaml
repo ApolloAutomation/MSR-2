@@ -729,6 +729,7 @@ text_sensor:
     id: apollo_firmware_version
     lambda: |-
       return {"${version}"};
+    update_interval: never
     entity_category: "diagnostic"
 
 select:
