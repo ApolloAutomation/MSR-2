@@ -164,6 +164,7 @@ number:
   - platform: template
     name: LTR390 Update Interval
     id: ltr390_update_interval
+    disabled_by_default: true
     restore_value: true
     initial_value: 60
     min_value: 1
