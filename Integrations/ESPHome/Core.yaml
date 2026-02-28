@@ -719,6 +719,17 @@ text_sensor:
       name: "IP Address"
       id: wifi_ip
       entity_category: "diagnostic"
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    lambda: |-
+      return {"${version}"};
+    update_interval: never
+    entity_category: "diagnostic"
 
 select:
   - platform: ld2410
