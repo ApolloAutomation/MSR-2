@@ -358,10 +358,6 @@ sensor:
         - lambda: |-
             static float last_reported_value = -6.0;
             float current_value = x;
-            float offset = id(dps310_pressure_offset).state;
-            if (!isnan(offset)) {
-              current_value += offset;
-            }
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
@@ -579,10 +575,6 @@ sensor:
         - lambda: |-
             static float last_reported_value = -21.0;
             float current_value = x;
-            float offset = id(dps310_pressure_offset).state;
-            if (!isnan(offset)) {
-              current_value += offset;
-            }
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
@@ -606,10 +598,6 @@ sensor:
         - lambda: |-
             static float last_reported_value = -21.0;
             float current_value = x;
-            float offset = id(dps310_pressure_offset).state;
-            if (!isnan(offset)) {
-              current_value += offset;
-            }
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
