@@ -786,8 +786,7 @@ text_sensor:
   - platform: template
     name: "Apollo Firmware Version"
     id: apollo_firmware_version
-    lambda: |-
-      return {"${version}"};
+    update_interval: never
     entity_category: "diagnostic"
 
 select:

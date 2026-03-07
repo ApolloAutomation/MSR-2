@@ -8,6 +8,11 @@ esphome:
     then:
       - lambda: |-
           id(radar_bluetooth).turn_off();
+  - priority: 500
+    then:
+      - text_sensor.template.publish:
+          id: apollo_firmware_version
+          state: "${version}"
   - priority: -10
     then:
       - if:
