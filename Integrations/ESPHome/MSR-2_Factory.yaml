@@ -3,13 +3,16 @@ esphome:
   friendly_name: Apollo MSR-2
   comment: Apollo MSR-2
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
   on_boot:
   - priority: 900.0
     then:
       - lambda: |-
           id(radar_bluetooth).turn_off();
+  - priority: 500
+    then:
+      - text_sensor.template.publish:
+          id: apollo_firmware_version
+          state: "${version}"
   - priority: -10
     then:
       - if:
@@ -36,11 +39,6 @@ esp32_improv:
   authorizer: none
 
 wifi:
-  on_connect:
-    - delay: 5s  
-    - ble.disable:
-  on_disconnect:
-    - ble.enable:
   ap:
     ssid: "Apollo MSR2 Hotspot"
 

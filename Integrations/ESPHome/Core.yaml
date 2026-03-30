@@ -1,10 +1,11 @@
 substitutions:
   name: apollo-msr-2
-  version:  "25.8.6.1"
+  version: "26.3.2.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   
 esp32:
-  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  flash_size: 4MB
   framework:
     type: esp-idf
 
@@ -43,20 +44,24 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
+  - id: ltr390_last_update
+    restore_value: no
+    type: uint32_t
+    initial_value: '0'
 
 # Enable Home Assistant API
-# Also Add Buzzer Service Connection
+# Also Add Buzzer Action Connection
 api:
-  services:
-    - service: play_buzzer
+  actions:
+    - action: play_buzzer
       variables:
         song_str: string
       then:
         - rtttl.play:
             rtttl: !lambda 'return song_str;'
 
-    #Co2 Calibration Service
-    - service: calibrate_co2_value
+    #Co2 Calibration Action
+    - action: calibrate_co2_value
       variables:
         co2_ppm: float
       then:
@@ -65,7 +70,7 @@ api:
             id: scd40
 
     #Setting HLK Password
-    - service: set_ld2410_bluetooth_password
+    - action: set_ld2410_bluetooth_password
       variables:
         password: string
       then:
@@ -145,6 +150,21 @@ number:
 
 
   - platform: template
+    name: "DPS310 Pressure Offset"
+    id: dps310_pressure_offset
+    disabled_by_default: true
+    restore_value: true
+    initial_value: 0.0
+    min_value: -100.0
+    max_value: 100.0
+    entity_category: "CONFIG"
+    unit_of_measurement: "hPa"
+    optimistic: true
+    update_interval: never
+    step: 0.1
+    mode: box
+
+  - platform: template
     name: DPS Temperature Offset
     id: dps310_temperature_offset
     restore_value: true
@@ -156,6 +176,20 @@ number:
     optimistic: true
     update_interval: never
     step: 0.1
+    mode: box
+  - platform: template
+    name: LTR390 Update Interval
+    id: ltr390_update_interval
+    disabled_by_default: true
+    restore_value: true
+    initial_value: 60
+    min_value: 1
+    max_value: 300
+    entity_category: "CONFIG"
+    unit_of_measurement: "s"
+    optimistic: true
+    update_interval: never
+    step: 1
     mode: box
 # Setting start of zone 1 occupancy
   - platform: template
@@ -320,6 +354,17 @@ binary_sensor:
               id(testScript).execute();
             }
 
+  - platform: template
+    name: "Radar Zone Occupancy"
+    id: "radar_zone_occupancy"
+    device_class: occupancy
+    icon: mdi:motion-sensor
+    lambda: |-
+      bool zone1 = id(radar_zone_1_occupancy).state;
+      bool zone2 = id(radar_zone_2_occupancy).state;
+      bool zone3 = id(radar_zone_3_occupancy).state;
+      return zone1 || zone2 || zone3;
+
 ld2410:
   id: ld2410_radar
 
@@ -329,17 +374,17 @@ sensor:
     id: sys_esp_temperature
     filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -376,8 +421,9 @@ sensor:
       name: Radar Moving Distance
       id: moving_distance
       filters:
+        - throttle_with_priority: 1000ms
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the radar_has_moving_target sensor is off
@@ -387,12 +433,12 @@ sensor:
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -404,8 +450,9 @@ sensor:
       name: Radar Still Distance
       id: still_distance
       filters:
+        - throttle_with_priority: 1000ms
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the radar_has_still_target sensor is off
@@ -415,12 +462,12 @@ sensor:
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -432,6 +479,7 @@ sensor:
       name: Radar Move Energy
       id: radar_moving_energy
       filters:
+        - throttle_with_priority: 1000ms
         - lambda: |-
             if (id(reduce_db_reporting).state) return {};
             return x;
@@ -439,6 +487,7 @@ sensor:
       name: Radar Still Energy
       id: radar_still_energy
       filters:
+        - throttle_with_priority: 1000ms
         - lambda: |-
             if (id(reduce_db_reporting).state) return {};
             return x;
@@ -446,8 +495,9 @@ sensor:
       name: Radar Detection Distance
       id: radar_detection_distance
       filters:
+        - throttle_with_priority: 1000ms
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
 
             // Check if the radar_has_target sensor is off
@@ -457,12 +507,12 @@ sensor:
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -536,22 +586,23 @@ sensor:
   
   - platform: ltr390
     id: ltr_390
+    update_interval: never
     light:
       name: "LTR390 Light"
       id: ltr390light
       filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -21.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
-              if (abs(current_value - last_reported_value) >= 20.0) {
+              // Apply delta filter: only report if the value has changed by 5 or more
+              if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 20
                 return {};  // Discard the update
               }
             } else {
@@ -564,17 +615,17 @@ sensor:
       id: ltr390uvindex
       filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -21.0;
             float current_value = x;
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
-              if (abs(current_value - last_reported_value) >= 20.0) {
+              // Apply delta filter: only report if the value has changed by 1 or more
+              if (abs(current_value - last_reported_value) >= 1.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 20
                 return {};  // Discard the update
               }
             } else {
@@ -590,17 +641,21 @@ sensor:
       id: dps310pressure
       filters:
         - lambda: |-
-            static float last_reported_value = 0.0;
+            static float last_reported_value = -6.0;
             float current_value = x;
+            float offset = id(dps310_pressure_offset).state;
+            if (!isnan(offset)) {
+              current_value += offset;
+            }
 
             // Check if the reduce_db_reporting switch is on
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 2 or more
+              // Apply delta filter: only report if the value has changed by 5 or more
               if (abs(current_value - last_reported_value) >= 5.0) {
                 last_reported_value = current_value;  // Update the last reported value
                 return current_value;
               } else {
-                // Return the last reported value without updating if change is less than 2
+                // Return the last reported value without updating if change is less than 5
                 return {};  // Discard the update
               }
             } else {
@@ -666,6 +721,28 @@ button:
           id: scd40
 
 
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          uint32_t current_time = millis() / 1000;  // Convert to seconds
+          uint32_t last_update = id(ltr390_last_update);
+          float configured_interval = id(ltr390_update_interval).state;
+          uint32_t interval = (configured_interval >= 1.0f) ? (uint32_t)configured_interval : 60u;
+
+          // Immediate update on boot (when last_update is still 0)
+          if (last_update == 0) {
+            id(ltr_390).update();
+            id(ltr390_last_update) = current_time;
+            return;
+          }
+
+          // Check if enough time has passed
+          if (current_time - last_update >= interval) {
+            id(ltr_390).update();
+            id(ltr390_last_update) = current_time;
+          }
+
 switch:
   - platform: ld2410
     bluetooth:
@@ -696,6 +773,21 @@ text_sensor:
   - platform: ld2410
     version:
       name: "Radar Firmware Version"
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
+      entity_category: "diagnostic"
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    update_interval: never
+    entity_category: "diagnostic"
 
 select:
   - platform: ld2410
