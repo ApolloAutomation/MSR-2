@@ -36,6 +36,8 @@ logger:
 ota:
   - platform: esphome
     id: ota_default
+  - platform: http_request
+    id: ota_managed
 
 wifi:
 
@@ -45,6 +47,17 @@ wifi:
   ap:
     ssid: "Apollo MSR2 Hotspot"
 
+
+http_request:
+  verify_ssl: true
+
+safe_mode:
+
+update:
+  - platform: http_request
+    id: update_http_request
+    name: Firmware Update
+    source: https://apolloautomation.github.io/MSR-2/firmware/manifest.json
 
 packages:
   core: !include Core.yaml
