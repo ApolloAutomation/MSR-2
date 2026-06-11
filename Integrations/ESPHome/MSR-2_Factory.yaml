@@ -25,7 +25,7 @@ esphome:
     name: "ApolloAutomation.MSR-2_Factory"
     version: "${version}"
 
-  min_version: 2025.2.0
+  min_version: 2025.11.0
 
   
 dashboard_import:
