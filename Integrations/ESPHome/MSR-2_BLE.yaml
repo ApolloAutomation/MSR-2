@@ -34,6 +34,8 @@ dashboard_import:
   import_full_config: false
 
 wifi:
+  on_connect:
+    - component.update: update_http_request
   ap:
     ssid: "Apollo MSR2 Hotspot"
 

@@ -40,6 +40,8 @@ ota:
     id: ota_managed
 
 wifi:
+  on_connect:
+    - component.update: update_http_request
 
   power_save_mode: none
 
