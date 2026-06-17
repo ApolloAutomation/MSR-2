@@ -26,7 +26,8 @@ jobs:
       device-name: msr-2
       yaml-files: |
         Integrations/ESPHome/MSR-2_Factory.yaml
-      firmware-names: "2_Factory:firmware"
+        Integrations/ESPHome/MSR-2_BLE.yaml
+      firmware-names: "2_Factory:firmware,2_BLE:firmware-ble"
       core-yaml-path: Integrations/ESPHome/Core.yaml
       esphome-version: stable
       # Bypass check if manually triggered with bypass option
