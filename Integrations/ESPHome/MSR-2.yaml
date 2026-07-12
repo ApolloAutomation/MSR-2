@@ -49,10 +49,6 @@ wifi:
   ap:
     ssid: "Apollo MSR2 Hotspot"
 
-
-http_request:
-  verify_ssl: true
-
 safe_mode:
 
 update:

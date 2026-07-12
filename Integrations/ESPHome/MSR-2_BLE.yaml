@@ -1,3 +1,8 @@
+substitutions:
+  # Legacy BLE devices keep updating from the firmware-ble manifest.
+  ota_stable_manifest: "https://apolloautomation.github.io/MSR-2/firmware-ble/manifest.json"
+  ota_beta_manifest: "https://github.com/ApolloAutomation/MSR-2/releases/download/beta-fw/manifest-ble.json"
+
 esphome:
   name: "${name}"
   friendly_name: Apollo MSR-2
@@ -44,15 +49,6 @@ ota:
     id: ota_esphome
   - platform: http_request
     id: ota_managed
-
-bluetooth_proxy:
-  active: true
-esp32_ble_tracker:
-  scan_parameters:
-    active: false
-
-http_request:
-  verify_ssl: true
 
 safe_mode:
 
