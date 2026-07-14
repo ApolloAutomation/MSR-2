@@ -1,22 +1,20 @@
 name: Auto Assign
-# pull_request_target (not pull_request) so assignment works on
-# fork-submitted PRs; fork pull_request runs get a read-only token.
-# Safe because this workflow never checks out or executes PR code.
+
 on:
   issues:
     types: [opened]
-  pull_request_target:
+  pull_request:
     types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
-  run:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-    steps:
-    - name: 'Auto-assign issue'
-      uses: pozil/auto-assign-issue@v2
-      with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: TrevorSchirmer
-          numOfAssignee: 1
+  auto-assign:
+    # Skip auto-assign for pull requests from forks due to GITHUB_TOKEN permission restrictions
+    if: github.event_name == 'issues' || github.event.pull_request.head.repo.full_name == github.repository
+    uses: ApolloAutomation/Workflows/.github/workflows/autoassign.yml@main
+    with:
+      assignees: bharvey88
+      num-of-assignees: 1
