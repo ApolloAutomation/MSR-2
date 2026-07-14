@@ -104,6 +104,7 @@ globals:
 # Enable Home Assistant API
 # Also Add Buzzer Action Connection
 api:
+  encryption:
   actions:
     - action: play_buzzer
       variables:
