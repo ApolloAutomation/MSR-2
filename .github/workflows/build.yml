@@ -24,9 +24,13 @@ jobs:
       pull-requests: write
     with:
       device-name: msr-2
+      # MSR-2.yaml is the end-user image served at firmware/ (OTA updates). The Factory image (improv +
+      # factory test) is only used for first flashes via the web installer.
       yaml-files: |
+        Integrations/ESPHome/MSR-2.yaml
         Integrations/ESPHome/MSR-2_Factory.yaml
-      firmware-names: "2_Factory:firmware"
+        Integrations/ESPHome/MSR-2_BLE.yaml
+      firmware-names: "2:firmware,2_Factory:firmware-factory,2_BLE:firmware-ble"
       core-yaml-path: Integrations/ESPHome/Core.yaml
       esphome-version: stable
       # Bypass check if manually triggered with bypass option
