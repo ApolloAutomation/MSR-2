@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version: "26.7.14.1"
+  version: "26.10.12.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   # Default update channel on first boot (no stored user choice yet, i.e. a
   # fresh flash). The beta-channel builds override this to "Beta" (see
@@ -17,6 +17,12 @@ substitutions:
   ota_stable_manifest: "${stable_manifest_base}/firmware/manifest.json"
   ota_beta_manifest: "${beta_manifest_base}/manifest-standard.json"
 
+  # Bluetooth Proxy switch state on a device with no stored preference yet
+  # (first boot after this switch was added, or after a factory reset). The
+  # unified image ships the proxy off; MSR-2_BLE.yaml overrides this to ON so
+  # legacy BLE devices keep proxying instead of going quiet after an update.
+  bluetooth_proxy_restore_mode: RESTORE_DEFAULT_OFF
+
 esphome:
   # List form so package merging concatenates with each variant's own on_boot
   # entries (mapping form would be replaced by the variant's block instead).
@@ -25,7 +31,7 @@ esphome:
       then:
         - script.execute: apply_ota_source
     # Re-apply the Bluetooth Proxy switch after all components set up, so BLE
-    # scanning matches the persisted switch (proxy stays off by default).
+    # scanning matches the switch state restored from flash.
     - priority: -300
       then:
         - if:
@@ -427,22 +433,24 @@ sensor:
     id: sys_esp_temperature
     filters:
         - lambda: |-
-            static float last_reported_value = -6.0;
+            static float last_reported_value = NAN;
+            static uint32_t last_report_time = 0;
             float current_value = x;
 
-            // Check if the reduce_db_reporting switch is on
+            // Reduce DB Reporting: report on a meaningful change, but at least hourly so the sensor never looks frozen
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 5 or more
-              if (abs(current_value - last_reported_value) >= 5.0) {
-                last_reported_value = current_value;  // Update the last reported value
+              uint32_t now = millis();
+              if (isnan(last_reported_value) ||
+                  abs(current_value - last_reported_value) >= 5.0 ||
+                  (now - last_report_time) >= 3600000UL) {
+                last_reported_value = current_value;
+                last_report_time = now;
                 return current_value;
-              } else {
-                // Return the last reported value without updating if change is less than 5
-                return {};  // Discard the update
               }
+              return {};  // Within delta and under the hourly heartbeat -> discard
             } else {
-              // If reduce_db_reporting is off, report the current value normally
               last_reported_value = current_value;
+              last_report_time = millis();
               return current_value;
             }
 
@@ -645,22 +653,24 @@ sensor:
       id: ltr390light
       filters:
         - lambda: |-
-            static float last_reported_value = -21.0;
+            static float last_reported_value = NAN;
+            static uint32_t last_report_time = 0;
             float current_value = x;
 
-            // Check if the reduce_db_reporting switch is on
+            // Reduce DB Reporting: report on a meaningful change, but at least hourly so the sensor never looks frozen
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 5 or more
-              if (abs(current_value - last_reported_value) >= 5.0) {
-                last_reported_value = current_value;  // Update the last reported value
+              uint32_t now = millis();
+              if (isnan(last_reported_value) ||
+                  abs(current_value - last_reported_value) >= 5.0 ||
+                  (now - last_report_time) >= 3600000UL) {
+                last_reported_value = current_value;
+                last_report_time = now;
                 return current_value;
-              } else {
-                // Return the last reported value without updating if change is less than 20
-                return {};  // Discard the update
               }
+              return {};  // Within delta and under the hourly heartbeat -> discard
             } else {
-              // If reduce_db_reporting is off, report the current value normally
               last_reported_value = current_value;
+              last_report_time = millis();
               return current_value;
             }
     uv_index:
@@ -668,22 +678,24 @@ sensor:
       id: ltr390uvindex
       filters:
         - lambda: |-
-            static float last_reported_value = -21.0;
+            static float last_reported_value = NAN;
+            static uint32_t last_report_time = 0;
             float current_value = x;
 
-            // Check if the reduce_db_reporting switch is on
+            // Reduce DB Reporting: report on a meaningful change, but at least hourly so the sensor never looks frozen
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 1 or more
-              if (abs(current_value - last_reported_value) >= 1.0) {
-                last_reported_value = current_value;  // Update the last reported value
+              uint32_t now = millis();
+              if (isnan(last_reported_value) ||
+                  abs(current_value - last_reported_value) >= 1.0 ||
+                  (now - last_report_time) >= 3600000UL) {
+                last_reported_value = current_value;
+                last_report_time = now;
                 return current_value;
-              } else {
-                // Return the last reported value without updating if change is less than 20
-                return {};  // Discard the update
               }
+              return {};  // Within delta and under the hourly heartbeat -> discard
             } else {
-              // If reduce_db_reporting is off, report the current value normally
               last_reported_value = current_value;
+              last_report_time = millis();
               return current_value;
             }
 
@@ -694,26 +706,29 @@ sensor:
       id: dps310pressure
       filters:
         - lambda: |-
-            static float last_reported_value = -6.0;
+            static float last_reported_value = NAN;
+            static uint32_t last_report_time = 0;
             float current_value = x;
             float offset = id(dps310_pressure_offset).state;
             if (!isnan(offset)) {
               current_value += offset;
             }
 
-            // Check if the reduce_db_reporting switch is on
+            // Reduce DB Reporting: report on a meaningful change, but at least hourly so the sensor never looks frozen.
+            // Barometric pressure normally drifts only 1-3 hPa a day, so the old 5 hPa delta could freeze the reading for hours.
             if (id(reduce_db_reporting).state) {
-              // Apply delta filter: only report if the value has changed by 5 or more
-              if (abs(current_value - last_reported_value) >= 5.0) {
-                last_reported_value = current_value;  // Update the last reported value
+              uint32_t now = millis();
+              if (isnan(last_reported_value) ||
+                  abs(current_value - last_reported_value) >= 0.5 ||
+                  (now - last_report_time) >= 3600000UL) {
+                last_reported_value = current_value;
+                last_report_time = now;
                 return current_value;
-              } else {
-                // Return the last reported value without updating if change is less than 5
-                return {};  // Discard the update
               }
+              return {};  // Within delta and under the hourly heartbeat -> discard
             } else {
-              // If reduce_db_reporting is off, report the current value normally
               last_reported_value = current_value;
+              last_report_time = millis();
               return current_value;
             }
     temperature:
@@ -721,7 +736,7 @@ sensor:
       id: dps310temperature
       filters:
         - lambda: return x - id(dps310_temperature_offset).state;
-    update_interval: 30s
+    update_interval: 60s
     i2c_id: bus_a
 
   
@@ -733,7 +748,7 @@ light:
     default_transition_length: 0s
     chipset: WS2812
     num_leds: 3
-    rgb_order: grb
+    channel_colors: GRB
     effects:
       - pulse:
           name: "Slow Pulse"
@@ -858,7 +873,7 @@ switch:
     id: bluetooth_proxy_switch
     icon: mdi:bluetooth
     entity_category: "config"
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: ${bluetooth_proxy_restore_mode}
     optimistic: true
     on_turn_on:
       - esp32_ble_tracker.start_scan:
@@ -918,8 +933,8 @@ script:
     then:
       - lambda: |-
           const bool beta = id(firmware_channel).current_option() == "Beta";
-          std::string url = beta ? "${ota_beta_manifest}" : "${ota_stable_manifest}";
-          ESP_LOGI("firmware", "OTA manifest set to: %s", url.c_str());
+          const char *url = beta ? "${ota_beta_manifest}" : "${ota_stable_manifest}";
+          ESP_LOGI("firmware", "OTA manifest set to: %s", url);
           id(update_http_request).set_source_url(url);
       - component.update: update_http_request
 
