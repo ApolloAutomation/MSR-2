@@ -15,8 +15,9 @@ Light sensor:
 Newer MSR-2 boards use an LTR-303ALS ambient light sensor in place of the discontinued LTR-390UV. The same firmware runs on both. At boot it detects which sensor is fitted and shows only that sensor's entities:
 - LTR-390UV boards: **LTR390 Light** and **LTR390 UV Index**, unchanged from earlier firmware.
 - LTR-303ALS boards: **LTR303 Light**. The LTR-303ALS has no UV sensor, so these boards have no UV Index entity.
+- If neither sensor answers at boot, the firmware hides nothing. All light sensor entities stay visible and read Unknown. This usually means a hardware fault.
 
-The **Light Sensor Model** diagnostic entity shows which sensor your board has. The device logs show one error for the model your board doesn't have ("marked FAILED: not fitted (expected)"). That error is normal.
+The **Light Sensor Model** diagnostic entity shows which sensor your board has (`LTR-390UV` or `LTR-303ALS`), or `Not detected` if neither answered. When a sensor is detected, the device logs show one error for the model your board doesn't have ("marked FAILED: not fitted (expected)"). That error is normal.
 
 Links: \
 Discord (Support/feedback/discussion/future products): [https://dsc.gg/ApolloAutomation] \
