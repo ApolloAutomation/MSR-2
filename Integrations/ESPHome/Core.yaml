@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version: "26.10.12.1"
+  version: "26.11.5.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   # Default update channel on first boot (no stored user choice yet, i.e. a
   # fresh flash). The beta-channel builds override this to "Beta" (see
@@ -27,6 +27,54 @@ esphome:
   # List form so package merging concatenates with each variant's own on_boot
   # entries (mapping form would be replaced by the variant's block instead).
   on_boot:
+    # Detect light sensor; hide the absent chip's entities.
+    # 700: after I2C setup, before sensors and API.
+    - priority: 700
+      then:
+        - lambda: |-
+            auto answers = [](uint8_t address) {
+              return id(bus_a).write(address, nullptr, 0) == i2c::ERROR_OK;
+            };
+            bool has_ltr390 = false;
+            bool has_ltr303 = false;
+            // LTR-303 needs up to 100 ms after power-up.
+            for (uint8_t attempt = 0; attempt < 20 && !has_ltr390 && !has_ltr303; attempt++) {
+              if (attempt > 0)
+                delay(10);
+              has_ltr390 = answers(0x53);
+              has_ltr303 = answers(0x29);
+            }
+            id(ltr390_fitted) = has_ltr390;
+            id(ltr303_fitted) = has_ltr303;
+
+            // Hide only when the other chip answered.
+            if (has_ltr303 && !has_ltr390) {
+              ESP_LOGI("light_sensor", "LTR-303ALS found at 0x29. This board has no LTR-390UV, so UV Index is not available");
+              id(ltr390light).set_internal(true);
+              id(ltr390uvindex).set_internal(true);
+              id(ltr390_update_interval).set_internal(true);
+              // Skip setup of the absent chip's driver.
+              id(ltr_390).mark_failed(LOG_STR("not fitted (expected), this board has an LTR-303ALS"));
+            } else if (has_ltr390 && !has_ltr303) {
+              ESP_LOGI("light_sensor", "LTR-390UV found at 0x53");
+              id(ltr303light).set_internal(true);
+              id(ltr303_update_interval).set_internal(true);
+              id(ltr_303).mark_failed(LOG_STR("not fitted (expected), this board has an LTR-390UV"));
+            } else if (!has_ltr390 && !has_ltr303) {
+              ESP_LOGW("light_sensor", "No light sensor answered at 0x53 (LTR-390UV) or 0x29 (LTR-303ALS)");
+            }
+    - priority: 500
+      then:
+        - text_sensor.template.publish:
+            id: light_sensor_model
+            state: !lambda |-
+              if (id(ltr390_fitted) && id(ltr303_fitted))
+                return "LTR-390UV + LTR-303ALS";
+              if (id(ltr390_fitted))
+                return "LTR-390UV";
+              if (id(ltr303_fitted))
+                return "LTR-303ALS";
+              return "Not detected";
     - priority: -100
       then:
         - script.execute: apply_ota_source
@@ -90,11 +138,11 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
-  - id: ltr390lightPassed
+  - id: lightSensorPassed
     restore_value: no
     type: bool
     initial_value: "false"
-  - id: ltr390uvindexPassed
+  - id: uvIndexPassed
     restore_value: no
     type: bool
     initial_value: "false"
@@ -102,10 +150,18 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
-  - id: ltr390_last_update
+  - id: light_sensor_last_update
     restore_value: no
     type: uint32_t
     initial_value: '0'
+  - id: ltr390_fitted
+    restore_value: no
+    type: bool
+    initial_value: "false"
+  - id: ltr303_fitted
+    restore_value: no
+    type: bool
+    initial_value: "false"
 
 # Enable Home Assistant API
 # Also Add Buzzer Action Connection
@@ -239,6 +295,21 @@ number:
   - platform: template
     name: LTR390 Update Interval
     id: ltr390_update_interval
+    disabled_by_default: true
+    restore_value: true
+    initial_value: 60
+    min_value: 1
+    max_value: 300
+    entity_category: "CONFIG"
+    unit_of_measurement: "s"
+    optimistic: true
+    update_interval: never
+    step: 1
+    mode: box
+  # Separate so LTR390 keeps its name and value.
+  - platform: template
+    name: LTR303 Update Interval
+    id: ltr303_update_interval
     disabled_by_default: true
     restore_value: true
     initial_value: 60
@@ -699,6 +770,40 @@ sensor:
               return current_value;
             }
 
+  # Newer boards: LTR-303ALS, light only, no UV.
+  - platform: ltr_als_ps
+    id: ltr_303
+    address: 0x29
+    type: ALS
+    # 8X skips slow auto-gain steps at indoor light.
+    gain: 8X
+    update_interval: never
+    ambient_light:
+      name: "LTR303 Light"
+      id: ltr303light
+      filters:
+        - lambda: |-
+            static float last_reported_value = NAN;
+            static uint32_t last_report_time = 0;
+            float current_value = x;
+
+            // Reduce DB: report 5 lux changes, or hourly.
+            if (id(reduce_db_reporting).state) {
+              uint32_t now = millis();
+              if (isnan(last_reported_value) ||
+                  abs(current_value - last_reported_value) >= 5.0 ||
+                  (now - last_report_time) >= 3600000UL) {
+                last_reported_value = current_value;
+                last_report_time = now;
+                return current_value;
+              }
+              return {};  // Within delta and under the hourly heartbeat -> discard
+            } else {
+              last_reported_value = current_value;
+              last_report_time = millis();
+              return current_value;
+            }
+
   - platform: dps310
     id: dps_310
     pressure:
@@ -808,23 +913,31 @@ interval:
   - interval: 1s
     then:
       - lambda: |-
+          // Poll the fitted light sensor at its interval.
+          const bool ltr303_only = id(ltr303_fitted) && !id(ltr390_fitted);
           uint32_t current_time = millis() / 1000;  // Convert to seconds
-          uint32_t last_update = id(ltr390_last_update);
-          float configured_interval = id(ltr390_update_interval).state;
+          uint32_t last_update = id(light_sensor_last_update);
+          float configured_interval = ltr303_only ? id(ltr303_update_interval).state : id(ltr390_update_interval).state;
           uint32_t interval = (configured_interval >= 1.0f) ? (uint32_t)configured_interval : 60u;
 
-          // Immediate update on boot (when last_update is still 0)
-          if (last_update == 0) {
-            id(ltr_390).update();
-            id(ltr390_last_update) = current_time;
+          // Retry each second until the first reading arrives.
+          const bool awaiting_first_reading = current_time < 30 &&
+              ((id(ltr390_fitted) && !id(ltr390light).has_state()) ||
+               (id(ltr303_fitted) && !id(ltr303light).has_state()));
+
+          // Update immediately on boot, then every interval.
+          if (last_update != 0 && !awaiting_first_reading && current_time - last_update < interval) {
             return;
           }
 
-          // Check if enough time has passed
-          if (current_time - last_update >= interval) {
+          // Skip drivers marked failed (chip not fitted).
+          if (!id(ltr_390).is_failed()) {
             id(ltr_390).update();
-            id(ltr390_last_update) = current_time;
           }
+          if (!id(ltr_303).is_failed()) {
+            id(ltr_303).update();
+          }
+          id(light_sensor_last_update) = current_time;
 
 switch:
   - platform: ld2410
@@ -899,6 +1012,12 @@ text_sensor:
   - platform: template
     name: "Apollo Firmware Version"
     id: apollo_firmware_version
+    update_interval: never
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Light Sensor Model"
+    id: light_sensor_model
+    icon: mdi:chip
     update_interval: never
     entity_category: "diagnostic"
 
@@ -976,9 +1095,10 @@ script:
         then:
           - lambda: "id(runTest) = false;"
           - lambda: "id(testCycleCount) = 0;"
+          # 5 s window; LTR-303 boards need 15 s.
           - while:
               condition:
-                - lambda: "return id(testCycleCount) < 5;"
+                - lambda: "return id(testCycleCount) < ((id(ltr303_fitted) && !id(ltr390_fitted)) ? 15 : 5);"
               then:
                 - if:
                     condition:
@@ -991,22 +1111,23 @@ script:
                             - lambda: "id(dps310Passed) = true;"
                 - if:
                     condition:
-                      - lambda: "return id(ltr390lightPassed) == false;"
+                      - lambda: "return id(lightSensorPassed) == false;"
                     then:
                       - if:
                           condition:
-                            - lambda: "return id(ltr390light).state > 10;"
+                            - lambda: "return id(ltr390light).state > 10 || id(ltr303light).state > 10;"
                           then:
-                            - lambda: "id(ltr390lightPassed) = true;"
+                            - lambda: "id(lightSensorPassed) = true;"
                 - if:
                     condition:
-                      - lambda: "return id(ltr390uvindexPassed) == false;"
+                      - lambda: "return id(uvIndexPassed) == false;"
                     then:
                       - if:
                           condition:
-                            - lambda: "return !isnan(id(ltr390uvindex).state);"
+                            # LTR-303-only boards have no UV to check.
+                            - lambda: "return !isnan(id(ltr390uvindex).state) || (id(ltr303_fitted) && !id(ltr390_fitted));"
                           then:
-                            - lambda: "id(ltr390uvindexPassed) = true;"
+                            - lambda: "id(uvIndexPassed) = true;"
                 - if:
                     condition:
                       - lambda: "return id(ld2410Passed) == false;"
@@ -1018,9 +1139,9 @@ script:
                             - lambda: "id(ld2410Passed) = true;"
                 - if:
                     condition:
-                      - lambda: "return id(dps310Passed) && id(ltr390lightPassed) && id(ltr390uvindexPassed) && id(ld2410Passed);"
+                      - lambda: "return id(dps310Passed) && id(lightSensorPassed) && id(uvIndexPassed) && id(ld2410Passed);"
                     then:
-                      - lambda: "id(testCycleCount) = 10;"
+                      - lambda: "id(testCycleCount) = 100;"  # All passed: end the loop early
                 - lambda: "id(runTest) = false;"
                 - delay: 1s
                 - lambda: "id(testCycleCount) += 1;"
@@ -1028,7 +1149,7 @@ script:
           #Check If Test Passed To Trigger Lights
           - if:
               condition:
-                - lambda: "return id(dps310Passed) && id(ltr390lightPassed) && id(ltr390uvindexPassed) && id(ld2410Passed);"
+                - lambda: "return id(dps310Passed) && id(lightSensorPassed) && id(uvIndexPassed) && id(ld2410Passed);"
               then:
                 - lambda: "id(runTest) = false;"
                 - light.turn_on:
