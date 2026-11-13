@@ -23,6 +23,10 @@ substitutions:
   # legacy BLE devices keep proxying instead of going quiet after an update.
   bluetooth_proxy_restore_mode: RESTORE_DEFAULT_OFF
 
+  # security: set these in your secrets.yaml or per-device substitutions
+  web_server_password: ""
+  api_encryption_key: ""
+
 esphome:
   # List form so package merging concatenates with each variant's own on_boot
   # entries (mapping form would be replaced by the variant's block instead).
@@ -58,9 +62,15 @@ bluetooth_proxy:
 
 captive_portal:
 
+# f-015: esphome exposes version/platform in mdns txt records; no yaml knob to suppress
 web_server:
   port: 80
   version: 3
+  auth:
+    username: admin
+    password: "${web_server_password}"
+  ota: false
+  local: true
 
 http_request:
   verify_ssl: true
@@ -111,6 +121,7 @@ globals:
 # Also Add Buzzer Action Connection
 api:
   encryption:
+    key: "${api_encryption_key}"
   actions:
     - action: play_buzzer
       variables:

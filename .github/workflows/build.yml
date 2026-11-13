@@ -16,7 +16,7 @@ on:
 
 jobs:
   build-and-publish:
-    uses: ApolloAutomation/Workflows/.github/workflows/build.yml@main
+    uses: ApolloAutomation/Workflows/.github/workflows/build.yml@a4f37688fcaeb0e00c61192f78d608eed061d17d # main
     permissions:
       contents: write
       pages: write

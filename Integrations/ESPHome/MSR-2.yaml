@@ -1,3 +1,7 @@
+substitutions:
+  # security: override in your device config or secrets.yaml
+  ap_password: "apollo-msr2"
+
 esphome:
   name: "${name}"
   friendly_name: Apollo MSR-2
@@ -48,6 +52,7 @@ wifi:
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Apollo MSR2 Hotspot"
+    password: "${ap_password}"
 
 safe_mode:
 
