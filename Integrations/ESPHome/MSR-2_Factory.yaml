@@ -38,9 +38,8 @@ dashboard_import:
 
 
 improv_serial:
-  next_url: ""
 
-esp32_improv:
+improv_ble:
   authorizer: reset_button
 
 wifi:
@@ -55,6 +54,7 @@ logger:
 ota:
   - platform: esphome
     id: ota_esphome
+    encryption:
   - platform: http_request
     id: ota_managed
 

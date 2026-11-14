@@ -67,6 +67,7 @@ web_server:
   port: 80
   version: 3
   auth:
+    type: digest
     username: admin
     password: "${web_server_password}"
   ota: false

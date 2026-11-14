@@ -54,6 +54,7 @@ wifi:
 ota:
   - platform: esphome
     id: ota_esphome
+    encryption:
   - platform: http_request
     id: ota_managed
 
