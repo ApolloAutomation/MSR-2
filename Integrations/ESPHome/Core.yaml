@@ -23,9 +23,9 @@ substitutions:
   # legacy BLE devices keep proxying instead of going quiet after an update.
   bluetooth_proxy_restore_mode: RESTORE_DEFAULT_OFF
 
-  # security: set these in your secrets.yaml or per-device substitutions
-  web_server_password: ""
-  api_encryption_key: ""
+  # security: override these in your device config or secrets.yaml
+  web_server_password: "apollo-msr2"
+  api_encryption_key: "g091uEXNOYsQ7B4KLS+Muk3EJxkT6Nnk4FsyPkVS9Xw="
 
 esphome:
   # List form so package merging concatenates with each variant's own on_boot
@@ -70,7 +70,6 @@ web_server:
     username: admin
     password: "${web_server_password}"
   ota: false
-  local: true
 
 http_request:
   verify_ssl: true
