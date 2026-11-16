@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version: "26.11.5.1"
+  version: "26.11.15.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   # Default update channel on first boot (no stored user choice yet, i.e. a
   # fresh flash). The beta-channel builds override this to "Beta" (see
@@ -78,6 +78,21 @@ esphome:
     - priority: -100
       then:
         - script.execute: apply_ota_source
+    # LD2410: re-read after the radar has settled so thresholds, version and
+    # MAC are not left at 0 after a cold boot. Turn the radar's Bluetooth off
+    # only if it reports on, since that restarts the radar; re-read after.
+    - priority: -200
+      then:
+        - delay: 5s
+        - lambda: "id(ld2410_radar).read_all_info();"
+        - delay: 2s
+        - if:
+            condition:
+              switch.is_on: radar_bluetooth
+            then:
+              - switch.turn_off: radar_bluetooth
+              - delay: 5s
+              - lambda: "id(ld2410_radar).read_all_info();"
     # Re-apply the Bluetooth Proxy switch after all components set up, so BLE
     # scanning matches the switch state restored from flash.
     - priority: -300
