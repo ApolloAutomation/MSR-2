@@ -1,3 +1,7 @@
+substitutions:
+  # security: override in your device config or secrets.yaml
+  ap_password: "apollo-msr2"
+
 esphome:
   name: "${name}"
   friendly_name: Apollo MSR-2
@@ -35,20 +39,22 @@ dashboard_import:
 
 improv_serial:
 
-esp32_improv:
-  authorizer: none
+improv_ble:
+  authorizer: reset_button
 
 wifi:
   on_connect:
     - component.update: update_http_request
   ap:
     ssid: "Apollo MSR2 Hotspot"
+    password: "${ap_password}"
 
 logger:
 
 ota:
   - platform: esphome
     id: ota_esphome
+    encryption:
   - platform: http_request
     id: ota_managed
 
