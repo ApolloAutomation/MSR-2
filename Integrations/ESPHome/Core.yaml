@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version: "26.11.15.1"
+  version: "26.11.16.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   # Manifest URL bases. Stable = GitHub Pages (main branch builds).
   # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
@@ -469,20 +469,27 @@ binary_sensor:
 
     on_release:
       then:
-        - lambda: |-
-            // Tap: status check, then self-test. 10 s: factory reset.
-            // 3-10 s does nothing (mains powered, no Prevent Sleep).
-            if (millis() - id(button_press_timestamp) >= 10000) {
-              id(factory_reset_switch).turn_on();
-            }
-            else if (millis() - id(button_press_timestamp) < 3000) {
-              // StatusCheck
-              id(statusCheck).execute();
-              delay(3000);
-              id(testCycleCount) = 0;
-              id(runTest) = true;
-              id(testScript).execute();
-            }
+        # Tap: status check, then self-test. 10 s: factory reset.
+        # 3-10 s does nothing (mains powered, no Prevent Sleep).
+        - if:
+            condition:
+              lambda: "return millis() - id(button_press_timestamp) >= 10000;"
+            then:
+              - switch.turn_on: factory_reset_switch
+            else:
+              - if:
+                  condition:
+                    lambda: "return millis() - id(button_press_timestamp) < 3000;"
+                  then:
+                    - script.execute: statusCheck
+                    # Let the status colour show for its full window before the self-test takes the LED
+                    - script.wait: statusCheck
+                    # Non-blocking: a delay() in a lambda would stall the main loop
+                    - delay: 3s
+                    - lambda: |-
+                        id(testCycleCount) = 0;
+                        id(runTest) = true;
+                    - script.execute: testScript
 
   - platform: template
     name: "Radar Zone Occupancy"
