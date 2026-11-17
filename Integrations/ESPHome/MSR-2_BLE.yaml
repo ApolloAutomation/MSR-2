@@ -34,7 +34,7 @@ esphome:
     name: "ApolloAutomation.MSR-2_BLE"
     version: "${version}"
 
-  min_version: 2026.10.0
+  min_version: 2026.10.1
 
 logger:
   
