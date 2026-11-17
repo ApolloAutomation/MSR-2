@@ -2,11 +2,6 @@ substitutions:
   name: apollo-msr-2
   version: "26.11.15.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
-  # Default update channel on first boot (no stored user choice yet, i.e. a
-  # fresh flash). The beta-channel builds override this to "Beta" (see
-  # Integrations/ESPHome/beta-channel/) so firmware obtained from the beta
-  # channel keeps tracking it instead of offering a stable "downgrade".
-  firmware_channel_default: "Stable"
   # Manifest URL bases. Stable = GitHub Pages (main branch builds).
   # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
   stable_manifest_base: "https://apolloautomation.github.io/MSR-2"
@@ -490,10 +485,15 @@ binary_sensor:
     on_release:
       then:
         - lambda: |-
-            if (millis() - id(button_press_timestamp) >= 8000) {
+            // Tap: status check, then self-test. 10 s: factory reset.
+            // 3-10 s does nothing (mains powered, no Prevent Sleep).
+            if (millis() - id(button_press_timestamp) >= 10000) {
               id(factory_reset_switch).turn_on();
             }
-            else if (millis() - id(button_press_timestamp) >= 1000) {
+            else if (millis() - id(button_press_timestamp) < 3000) {
+              // StatusCheck
+              id(statusCheck).execute();
+              delay(3000);
               id(testCycleCount) = 0;
               id(runTest) = true;
               id(testScript).execute();
@@ -1052,7 +1052,7 @@ select:
     options:
       - "Stable"
       - "Beta"
-    initial_option: "${firmware_channel_default}"
+    initial_option: "Stable"
     on_value:
       then:
         - script.execute: apply_ota_source
@@ -1101,6 +1101,44 @@ script:
       - delay: 10ms
       - lambda: |-
           id(scd40).write_command((uint16_t) 0x21B1); //start periodic measurement
+
+  - id: statusCheck
+    # LED shows connection state: blue = Home Assistant connected,
+    # green = network only, yellow = no network.
+    then:
+      - if:
+          condition:
+            - lambda: 'return id(ink_ha_connected).state;'
+          then:
+            - logger.log: "Apollo Automation: Connected To HA"
+            - light.turn_on:
+                id: rgb_light
+                brightness: 100%
+                red: 0%
+                green: 0%
+                blue: 100%
+          else:
+            - if:
+                condition:
+                  wifi.connected:
+                then:
+                  - logger.log: "Apollo Automation: Connected To Network"
+                  - light.turn_on:
+                      id: rgb_light
+                      brightness: 100%
+                      red: 0%
+                      green: 100%
+                      blue: 0%
+                else:
+                  - logger.log: "Apollo Automation: Not Connected To Network"
+                  - light.turn_on:
+                      id: rgb_light
+                      brightness: 100%
+                      red: 100%
+                      green: 100%
+                      blue: 0%
+      - delay: 5s
+      - light.turn_off: rgb_light
 
   - id: testScript
     then:
