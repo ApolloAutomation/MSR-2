@@ -4,10 +4,6 @@ esphome:
   comment: Apollo MSR-2
   name_add_mac_suffix: true
   on_boot:
-  - priority: 900.0
-    then:
-      - lambda: |-
-          id(radar_bluetooth).turn_off();
   - priority: 500
     then:
       - text_sensor.template.publish:
@@ -25,7 +21,7 @@ esphome:
     name: "ApolloAutomation.MSR-2_Factory"
     version: "${version}"
 
-  min_version: 2026.10.0
+  min_version: 2026.10.1
 
   
 dashboard_import:

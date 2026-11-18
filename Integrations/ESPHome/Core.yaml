@@ -1,6 +1,6 @@
 substitutions:
   name: apollo-msr-2
-  version: "26.11.15.1"
+  version: "26.11.17.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
   # Manifest URL bases. Stable = GitHub Pages (main branch builds).
   # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
@@ -73,6 +73,21 @@ esphome:
     - priority: -100
       then:
         - script.execute: apply_ota_source
+    # LD2410: re-read after the radar has settled so thresholds, version and
+    # MAC are not left at 0 after a cold boot. Turn the radar's Bluetooth off
+    # only if it reports on, since that restarts the radar; re-read after.
+    - priority: -200
+      then:
+        - delay: 5s
+        - lambda: "id(ld2410_radar).read_all_info();"
+        - delay: 2s
+        - if:
+            condition:
+              switch.is_on: radar_bluetooth
+            then:
+              - switch.turn_off: radar_bluetooth
+              - delay: 5s
+              - lambda: "id(ld2410_radar).read_all_info();"
     # Re-apply the Bluetooth Proxy switch after all components set up, so BLE
     # scanning matches the switch state restored from flash.
     - priority: -300
@@ -469,20 +484,27 @@ binary_sensor:
 
     on_release:
       then:
-        - lambda: |-
-            // Tap: status check, then self-test. 10 s: factory reset.
-            // 3-10 s does nothing (mains powered, no Prevent Sleep).
-            if (millis() - id(button_press_timestamp) >= 10000) {
-              id(factory_reset_switch).turn_on();
-            }
-            else if (millis() - id(button_press_timestamp) < 3000) {
-              // StatusCheck
-              id(statusCheck).execute();
-              delay(3000);
-              id(testCycleCount) = 0;
-              id(runTest) = true;
-              id(testScript).execute();
-            }
+        # Tap: status check, then self-test. 10 s: factory reset.
+        # 3-10 s does nothing (mains powered, no Prevent Sleep).
+        - if:
+            condition:
+              lambda: "return millis() - id(button_press_timestamp) >= 10000;"
+            then:
+              - switch.turn_on: factory_reset_switch
+            else:
+              - if:
+                  condition:
+                    lambda: "return millis() - id(button_press_timestamp) < 3000;"
+                  then:
+                    - script.execute: statusCheck
+                    # Let the status colour show for its full window before the self-test takes the LED
+                    - script.wait: statusCheck
+                    # Non-blocking: a delay() in a lambda would stall the main loop
+                    - delay: 3s
+                    - lambda: |-
+                        id(testCycleCount) = 0;
+                        id(runTest) = true;
+                    - script.execute: testScript
 
   - platform: template
     name: "Radar Zone Occupancy"
@@ -901,12 +923,7 @@ button:
     on_press:
       - logger.log: "Applying firmware update for the selected channel"
       - delay: 3s
-      - script.execute: apply_ota_source
-      - script.wait: apply_ota_source
-      # The manifest fetch runs in its own task; give it a fixed window to land
-      # (update.is_available stays false for same-version switches).
-      - delay: 5s
-      - lambda: id(update_http_request).perform(true);
+      - script.execute: install_selected_channel
 
 
 interval:
@@ -1056,6 +1073,59 @@ script:
           ESP_LOGI("firmware", "OTA manifest set to: %s", url);
           id(update_http_request).set_source_url(url);
       - component.update: update_http_request
+
+  # The update component drops a check requested while another one is running,
+  # so keep asking until install_selected_channel has what it needs.
+  - id: request_channel_manifest
+    mode: restart
+    then:
+      - repeat:
+          count: 4
+          then:
+            - script.execute: apply_ota_source
+            - script.wait: apply_ota_source
+            - delay: 5s
+
+  # Forced install, but only of a manifest fetched after this press from the
+  # selected channel. mode single: a second press while this runs is ignored.
+  - id: install_selected_channel
+    mode: single
+    then:
+      # Mark the cached firmware URL as old. Only a successful check replaces it.
+      - lambda: |-
+          std::string &fw = const_cast<std::string &>(id(update_http_request).update_info.firmware_url);
+          if (fw.rfind('!', 0) != 0) fw.insert(0, "!");
+      - script.execute: request_channel_manifest
+      # Wait for a check without error whose firmware sits in the directory of
+      # the selected channel's manifest (relative Pages paths are merged with
+      # it, beta paths are release-asset URLs in the same directory).
+      - wait_until:
+          timeout: 20s
+          condition:
+            lambda: |-
+              const char *src = id(update_http_request).get_source_url();
+              const size_t dir = strrchr(src, '/') - src + 1;
+              return !id(update_http_request).status_has_error() &&
+                     strncmp(id(update_http_request).update_info.firmware_url.c_str(), src, dir) == 0;
+      - script.stop: request_channel_manifest
+      - lambda: |-
+          std::string &fw = const_cast<std::string &>(id(update_http_request).update_info.firmware_url);
+          const char *src = id(update_http_request).get_source_url();
+          const size_t dir = strrchr(src, '/') - src + 1;
+          const bool err = id(update_http_request).status_has_error();
+          const char *why = nullptr;
+          if (fw.rfind('!', 0) == 0) {
+            why = err ? "the manifest check failed" : "no manifest arrived within 20s";
+            fw.erase(0, 1);  // put the old URL back for the update entity
+          } else if (err || strncmp(fw.c_str(), src, dir) != 0) {
+            why = "the manifest that arrived is not from the selected channel";
+          }
+          if (why != nullptr) {
+            ESP_LOGW("firmware", "Firmware Update: %s (%s); not installing", why, src);
+            return;
+          }
+          ESP_LOGI("firmware", "Installing %s", fw.c_str());
+          id(update_http_request).perform(true);
 
   - id: setCo2AutoCalibration
     mode: restart
